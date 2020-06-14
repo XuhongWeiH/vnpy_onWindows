@@ -1,5 +1,6 @@
 import os
 from typing import TYPE_CHECKING
+import json
 
 if TYPE_CHECKING:
     from vnpy.trader.database.database import BaseDatabaseManager

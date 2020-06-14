@@ -26,19 +26,19 @@ SETTINGS: Dict[str, Any] = {
     "rqdata.username": "",
     "rqdata.password": "",
 
-    "database.driver": "mongodb",  # see database.Driver
-    "database.database": "VNPY",  # for sqlite, use this as filepath
+    "database.driver": "mongodb",
+    "database.database": "weixuhong_data_1234",
     "database.host": "localhost",
     "database.port": 27017,
     "database.user": "",
     "database.password": "",
-    "database.authentication_source": "",  # for mongodb admin
+    "database.authentication_source": ""
 }
 
 # Load global setting from json file.
 SETTING_FILENAME: str = "vt_setting.json"
-SETTINGS.update(load_json(SETTING_FILENAME))
 
+SETTINGS.update(load_json(SETTING_FILENAME))
 
 def get_settings(prefix: str = "") -> Dict[str, Any]:
     prefix_length = len(prefix)

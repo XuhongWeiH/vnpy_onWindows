@@ -1,8 +1,16 @@
 import os 
 import csv
 from datetime import datetime, time
-
+import sys
+sys.path.append('.')
 from vnpy.trader.constant import Exchange
+
+from vnpy.trader.utility import load_json, save_json
+SETTING_FILENAME: str = "vt_setting.json"
+setting_data = load_json(SETTING_FILENAME)
+setting_data["database.database"] = "from_csv"
+save_json(SETTING_FILENAME, setting_data)
+
 from vnpy.trader.database import database_manager
 from vnpy.trader.object import TickData
 
@@ -67,7 +75,7 @@ def csv_load(file):
         end = tick.datetime
         database_manager.save_tick_data(ticks)
 
-        print("插入数据", start, "-", end, "总数量：", count)      
+        print("插入数据", start, "-", end, "总数量：", count)
 
 
 if __name__ == "__main__":

@@ -82,10 +82,12 @@ class Exchange(Enum):
     SHFE = "SHFE"           # Shanghai Futures Exchange
     CZCE = "CZCE"           # Zhengzhou Commodity Exchange
     DCE = "DCE"             # Dalian Commodity Exchange
+    XDCE = "XDCE"            # Dalian Commodity Exchange
     INE = "INE"             # Shanghai International Energy Exchange
     SSE = "SSE"             # Shanghai Stock Exchange
     SZSE = "SZSE"           # Shenzhen Stock Exchange
     SGE = "SGE"             # Shanghai Gold Exchange
+    XSGE = "XSGE"             # Shanghai Gold Exchange
     WXE = "WXE"             # Wuxi Steel Exchange
     CFETS = "CFETS"         # China Foreign Exchange Trade System
 
@@ -148,5 +150,5 @@ class Interval(Enum):
     """
     MINUTE = "1m"
     HOUR = "1h"
-    DAILY = "d"
+    DAILY = "1d"
     WEEKLY = "w"

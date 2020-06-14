@@ -101,6 +101,84 @@ class DbBarData(Document):
         )
         return bar
 
+class jqDbBarData(Document):
+    """
+    Candlestick bar data for database storage.
+
+    Index is defined unique with datetime, interval, symbol
+    """
+    gatewayName: str = StringField()
+    symbol: str = StringField()
+    exchange: str = StringField()
+    
+    open_price: float = FloatField()
+    high_price: float = FloatField()
+    low_price: float = FloatField()
+    close_price: float = FloatField()
+    low_limit: float = FloatField()
+    high_limit: float = FloatField()
+
+    factor: float = FloatField()
+    avg: float = FloatField()
+    pre_close: float = FloatField()
+    paused: float = FloatField()
+
+    datetime: datetime = DateTimeField()
+
+    volume: float = FloatField()
+    money: float = FloatField()
+    open_interest: float = FloatField()
+    interval: str = StringField()
+
+    gatewayName: str = StringField()
+
+    meta = {
+        "indexes": [
+            {
+                "fields": ("symbol", "interval", "datetime"),
+                "unique": True,
+            }
+        ]
+    }
+
+    @staticmethod
+    def from_bar(bar: BarData):
+        """
+        Generate DbBarData object from BarData.
+        """
+        db_bar = jqDbBarData()
+
+        db_bar.symbol = bar.symbol
+        db_bar.exchange = bar.exchange.value
+        db_bar.datetime = bar.datetime
+        db_bar.interval = bar.interval.value
+        db_bar.volume = bar.volume
+        db_bar.open_interest = bar.open_interest
+        db_bar.open_price = bar.open_price
+        db_bar.high_price = bar.high_price
+        db_bar.low_price = bar.low_price
+        db_bar.close_price = bar.close_price
+
+        return db_bar
+
+    def to_bar(self):
+        """
+        Generate BarData object from DbBarData.
+        """
+        bar = BarData(
+            symbol=self.symbol,
+            exchange=Exchange(self.exchange),
+            datetime=self.datetime,
+            interval=Interval(self.interval),
+            volume=self.volume,
+            open_interest=self.open_interest,
+            open_price=self.open_price,
+            high_price=self.high_price,
+            low_price=self.low_price,
+            close_price=self.close_price,
+            gateway_name="DB",
+        )
+        return bar
 
 class DbTickData(Document):
     """
@@ -270,14 +348,23 @@ class MongoManager(BaseDatabaseManager):
         start: datetime,
         end: datetime,
     ) -> Sequence[BarData]:
-        s = DbBarData.objects(
+        # s = DbBarData.objects(
+        #     symbol=symbol,
+        #     exchange=exchange.value,
+        #     interval=interval.value,
+        #     datetime__gte=start,
+        #     datetime__lte=end,
+        # )
+        s = jqDbBarData.objects(
             symbol=symbol,
-            exchange=exchange.value,
+            # exchange=exchange.value,
             interval=interval.value,
             datetime__gte=start,
             datetime__lte=end,
         )
         data = [db_bar.to_bar() for db_bar in s]
+        # for db_bar in s:
+        #     db_bar.to_bar()
         return data
 
     def load_tick_data(
@@ -305,7 +392,7 @@ class MongoManager(BaseDatabaseManager):
             updates.pop("set__gateway_name")
             updates.pop("set__vt_symbol")
             (
-                DbBarData.objects(
+                jqDbBarData.objects(
                     symbol=d.symbol, interval=d.interval.value, datetime=d.datetime
                 ).update_one(upsert=True, **updates)
             )
@@ -325,7 +412,7 @@ class MongoManager(BaseDatabaseManager):
         self, symbol: str, exchange: "Exchange", interval: "Interval"
     ) -> Optional["BarData"]:
         s = (
-            DbBarData.objects(
+            jqDbBarData.objects(
                 symbol=symbol,
                 exchange=exchange.value,
                 interval=interval.value
@@ -341,7 +428,7 @@ class MongoManager(BaseDatabaseManager):
         self, symbol: str, exchange: "Exchange", interval: "Interval"
     ) -> Optional["BarData"]:
         s = (
-            DbBarData.objects(
+            jqDbBarData.objects(
                 symbol=symbol,
                 exchange=exchange.value,
                 interval=interval.value
@@ -368,7 +455,7 @@ class MongoManager(BaseDatabaseManager):
     def get_bar_data_statistics(self) -> List:
         """"""
         s = (
-            DbBarData.objects.aggregate({
+            jqDbBarData.objects.aggregate({
                 "$group": {
                     "_id": {
                         "symbol": "$symbol",
@@ -398,7 +485,7 @@ class MongoManager(BaseDatabaseManager):
         """
         Delete all bar data with given symbol + exchange + interval.
         """
-        count = DbBarData.objects(
+        count = jqDbBarData.objects(
             symbol=symbol,
             exchange=exchange.value,
             interval=interval.value
@@ -408,4 +495,4 @@ class MongoManager(BaseDatabaseManager):
 
     def clean(self, symbol: str):
         DbTickData.objects(symbol=symbol).delete()
-        DbBarData.objects(symbol=symbol).delete()
+        jqDbBarData.objects(symbol=symbol).delete()

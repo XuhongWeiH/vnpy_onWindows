@@ -18,7 +18,7 @@ class Event:
     object which contains the real data.
     """
 
-    def __init__(self, type: str, data: Any = None):
+    def __init__(self, type: str = 'Weixuhong', data: Any = None):
         """"""
         self.type: str = type
         self.data: Any = data

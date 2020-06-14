@@ -1,0 +1,9 @@
+{
+    "database.driver": "mongodb",
+    "database.database": "weixuhong_data_1234",
+    "database.host": "localhost",
+    "database.port": 27017,
+    "database.user": "",
+    "database.password": "",
+    "database.authentication_source": ""
+}
