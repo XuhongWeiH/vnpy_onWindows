@@ -10,28 +10,40 @@ from vnpy.app.cta_strategy import (
     ArrayManager,
 )
 
-class TurtleSignalStrategy(CtaTemplate):
+class TurtleSignalStrategyImprove(CtaTemplate):
     """"""
-    author = "用Python的交易员"
+    author = "wxh"
 
-    entry_window = 60
-    exit_window = 30
-    atr_window = 14
+    entry_window = 21
+    exit_window = 18
+    atr_window = 23
     fixed_size = 1
+    stop_rate = 1.1
+    add_rate = 1.0
+
+# IF
+    # entry_window = 8
+    # exit_window = 10
+    # atr_window = 17
+    # fixed_size = 1
+    # stop_rate = 1.4
+    # add_rate = 0.5
 
     entry_up = 0
     entry_down = 0
     exit_up = 0
     exit_down = 0
     atr_value = 0
+    price_mean = 0
 
     long_entry = 0
     short_entry = 0
     long_stop = 0
     short_stop = 0
 
-    parameters = ["entry_window", "exit_window", "atr_window", "fixed_size"]
-    variables = ["entry_up", "entry_down", "exit_up", "exit_down", "atr_value"]
+
+    parameters = ["entry_window", "exit_window", "atr_window", "fixed_size", "stop_rate", "add_rate"]
+    variables = ["entry_up", "entry_down", "exit_up", "exit_down", "atr_value","price_mean", ]
 
     def __init__(self, cta_engine, strategy_name, vt_symbol, setting):
         """"""
@@ -82,7 +94,9 @@ class TurtleSignalStrategy(CtaTemplate):
             )
 
         self.exit_up, self.exit_down = self.am.donchian(self.exit_window)
+        
 
+        #cover 平空 buy买多 sell平多 short 买空
         if not self.pos:
             self.atr_value = self.am.atr(self.atr_window)
 
@@ -90,19 +104,27 @@ class TurtleSignalStrategy(CtaTemplate):
             self.short_entry = 0
             self.long_stop = 0
             self.short_stop = 0
-
+            #开仓：
+            # if self.entry_up < self.price_mean:
+            #     self.send_buy_orders(self.entry_up)
+            # if self.entry_down > self.price_mean:
+            #     self.send_short_orders(self.entry_down)
+        
             self.send_buy_orders(self.entry_up)
             self.send_short_orders(self.entry_down)
+
         elif self.pos > 0:
             self.send_buy_orders(self.entry_up)
 
             sell_price = max(self.long_stop, self.exit_down)
+            # sell_price = self.long_stop
             self.sell(sell_price, abs(self.pos), True)
 
         elif self.pos < 0:
             self.send_short_orders(self.entry_down)
 
             cover_price = min(self.short_stop, self.exit_up)
+            # cover_price = self.short_stop
             self.cover(cover_price, abs(self.pos), True)
 
         self.put_event()
@@ -113,10 +135,10 @@ class TurtleSignalStrategy(CtaTemplate):
         """
         if trade.direction == Direction.LONG:
             self.long_entry = trade.price
-            self.long_stop = self.long_entry - 2 * self.atr_value
+            self.long_stop = self.long_entry - self.stop_rate * self.atr_value
         else:
             self.short_entry = trade.price
-            self.short_stop = self.short_entry + 2 * self.atr_value
+            self.short_stop = self.short_entry + self.stop_rate * self.atr_value
 
     def on_order(self, order: OrderData):
         """
@@ -138,13 +160,13 @@ class TurtleSignalStrategy(CtaTemplate):
             self.buy(price, self.fixed_size, True)
 
         if t < 2:
-            self.buy(price + self.atr_value * 0.5, self.fixed_size, True)
+            self.buy(price + self.atr_value * 0.5 * self.add_rate, self.fixed_size, True)
 
         if t < 3:
-            self.buy(price + self.atr_value, self.fixed_size, True)
+            self.buy(price + self.atr_value * self.add_rate, self.fixed_size, True)
 
         if t < 4:
-            self.buy(price + self.atr_value * 1.5, self.fixed_size, True)
+            self.buy(price + self.atr_value * 1.5 * self.add_rate, self.fixed_size, True)
 
     def send_short_orders(self, price):
         """"""
@@ -154,10 +176,10 @@ class TurtleSignalStrategy(CtaTemplate):
             self.short(price, self.fixed_size, True)
 
         if t > -2:
-            self.short(price - self.atr_value * 0.5, self.fixed_size, True)
+            self.short(price - self.atr_value * 0.5 * self.add_rate, self.fixed_size, True)
 
         if t > -3:
-            self.short(price - self.atr_value, self.fixed_size, True)
+            self.short(price - self.atr_value * self.add_rate, self.fixed_size, True)
 
         if t > -4:
-            self.short(price - self.atr_value * 1.5, self.fixed_size, True)
+            self.short(price - self.atr_value * 1.5 * self.add_rate, self.fixed_size, True)

@@ -1,0 +1,264 @@
+{
+    "ITEM": {
+        "A8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "AG8888.XSGE": {
+            "size_line": 15,
+            "pricetick_line": 1
+        },
+        "AL8888.XSGE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "AP8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "AU8888.XSGE": {
+            "size_line": 1000,
+            "pricetick_line": 0.02
+        },
+        "B8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "BB8888.XDCE": {
+            "size_line": 500,
+            "pricetick_line": 0.05
+        },
+        "BU8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 2
+        },
+        "C8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "CF8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "CJ8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "CS8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "CU8888.XSGE": {
+            "size_line": 5,
+            "pricetick_line": 10
+        },
+        "CY8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "EB8888.XDCE": {
+            "size_line": 5,
+            "pricetick_line": 1
+        },
+        "EG8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "FB8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 0.5
+        },
+        "FG8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "FU8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "HC8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "I8888.XDCE": {
+            "size_line": 100,
+            "pricetick_line": 0.5
+        },
+        "IC8888.CCFX": {
+            "size_line": 200,
+            "pricetick_line": 0.2
+        },
+        "IF8888.CCFX": {
+            "size_line": 300,
+            "pricetick_line": 0.2
+        },
+        "IH8888.CCFX": {
+            "size_line": 300,
+            "pricetick_line": 0.2
+        },
+        "J8888.XDCE": {
+            "size_line": 100,
+            "pricetick_line": 0.5
+        },
+        "JD8888.XDCE": {
+            "size_line": 5,
+            "pricetick_line": 2
+        },
+        "JM8888.XDCE": {
+            "size_line": 60,
+            "pricetick_line": 0.5
+        },
+        "JR8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "L8888.XDCE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "LR8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "M8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "MA8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "NI8888.XSGE": {
+            "size_line": 1,
+            "pricetick_line": 10
+        },
+        "NR8888.XINE": {
+            "size_line": 10,
+            "pricetick_line": 5
+        },
+        "OI8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "P8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 2
+        },
+        "PB8888.XSGE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "PG8888.XDCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "PM8888.XZCE": {
+            "size_line": 50,
+            "pricetick_line": 1
+        },
+        "PP8888.XDCE": {
+            "size_line": 5,
+            "pricetick_line": 1
+        },
+        "RB8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "RI8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "RM8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "RR8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "RS8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "RU8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 5
+        },
+        "SA8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "SC8888.XINE": {
+            "size_line": 1000,
+            "pricetick_line": 0.1
+        },
+        "SF8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 2
+        },
+        "SM8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 2
+        },
+        "SN8888.XSGE": {
+            "size_line": 1,
+            "pricetick_line": 10
+        },
+        "SP8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 2
+        },
+        "SR8888.XZCE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "SS8888.XSGE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "T8888.CCFX": {
+            "size_line": 1000000,
+            "pricetick_line": 0.005
+        },
+        "TA8888.XZCE": {
+            "size_line": 5,
+            "pricetick_line": 2
+        },
+        "TF8888.CCFX": {
+            "size_line": 1000000,
+            "pricetick_line": 0.005
+        },
+        "TS8888.CCFX": {
+            "size_line": 2000000,
+            "pricetick_line": 0.005
+        },
+        "UR8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "V8888.XDCE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        },
+        "WH8888.XZCE": {
+            "size_line": 20,
+            "pricetick_line": 1
+        },
+        "WR8888.XSGE": {
+            "size_line": 10,
+            "pricetick_line": 1
+        },
+        "Y8888.XDCE": {
+            "size_line": 10,
+            "pricetick_line": 2
+        },
+        "ZC8888.XZCE": {
+            "size_line": 100,
+            "pricetick_line": 0.2
+        },
+        "ZN8888.XSGE": {
+            "size_line": 5,
+            "pricetick_line": 5
+        }
+    }
+}

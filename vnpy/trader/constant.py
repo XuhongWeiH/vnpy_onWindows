@@ -81,6 +81,7 @@ class Exchange(Enum):
     CFFEX = "CFFEX"         # China Financial Futures Exchange
     SHFE = "SHFE"           # Shanghai Futures Exchange
     CZCE = "CZCE"           # Zhengzhou Commodity Exchange
+    XZCE = "XZCE"           # Zhengzhou Commodity Exchange
     DCE = "DCE"             # Dalian Commodity Exchange
     XDCE = "XDCE"            # Dalian Commodity Exchange
     INE = "INE"             # Shanghai International Energy Exchange
@@ -90,6 +91,8 @@ class Exchange(Enum):
     XSGE = "XSGE"             # Shanghai Gold Exchange
     WXE = "WXE"             # Wuxi Steel Exchange
     CFETS = "CFETS"         # China Foreign Exchange Trade System
+    CCFX = "CCFX"         # China Foreign Exchange Trade System
+    XINE = "XINE"
 
     # Global
     SMART = "SMART"         # Smart Router for US stocks

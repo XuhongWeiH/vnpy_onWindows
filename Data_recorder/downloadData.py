@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # downloadAllMinuteBar()
 
     # 按日期补齐数据
-    downloadBarByDate(end_date=datetime(2019, 1, 1))
+    downloadBarByDate(end_date=datetime(2020, 6, 1))
 
     # 按合约列表和日期补齐数据
     # downloadSymbolBarByDate(['I8888', 'CU8888'], '2010-01-01')
