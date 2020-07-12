@@ -12,6 +12,17 @@ from time import time, sleep
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+import sys, os
+from save2json import SaveJson
+
+sv = SaveJson()
+# Disable
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__
+
 def show_chart(df):
     fig = make_subplots(rows=4, cols=1, subplot_titles=["Balance", "Drawdown", "Daily Pnl", "Pnl Distribution"], vertical_spacing=0.06)
 
@@ -37,6 +48,10 @@ with open("PARA\Information.json", encoding='utf-8') as fr:
     information_future = json.loads(fr.read())
     information_future = information_future['ITEM']
 
+with open("D:/vnpy-2.1.2/vnpy-2.1.2/PARA/trade_type/trade_list.json", encoding='utf-8') as fr:
+    trade_list = json.loads(fr.read())
+    trade_list = trade_list['tradeable']
+
 def write_list_to_json(list_in, json_file_name, json_file_save_path):   
      """    
      将list写入到json文件    
@@ -49,9 +64,14 @@ def write_list_to_json(list_in, json_file_name, json_file_save_path):
      with open(json_file_name, 'w') as  f:        
          json.dump(list_in, f)
 
+result:dict = {}
+for k in trade_list:
 
-for k in information_future.keys():
-    print('优化:' + k)     
+    with open("D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para_refine/" + k, encoding='utf-8') as fr:
+        future_para = json.loads(fr.read())
+
+    print('测试:' + k)  
+    blockPrint()#关闭output   
     engine = BacktestingEngine()
     engine.set_parameters(
         vt_symbol=k,
@@ -65,30 +85,23 @@ for k in information_future.keys():
         capital=1_000_000,
         mode=BacktestingMode.BAR
     )
-    engine.add_strategy(TurtleSignalStrategyImprove, {})
+    engine.add_strategy(TurtleSignalStrategyImprove, future_para[1][0][0])
 
+    
     engine.load_data()
     engine.run_backtesting()
     df = engine.calculate_result()
-    engine.calculate_statistics()
-    # engine.show_chart()
-    # show_chart(df)
+    enablePrint()#打开output 
+    r = engine.calculate_statistics()
+    for item in r.keys():
+        if item in ["start_date", "end_date"]:
+            r[item] = str(r[item])
+        else:
+            r[item] = float(r[item])
 
-    setting = OptimizationSetting()
-    setting.set_target("daily_return")
-    setting.add_parameter("entry_window", 5, 40, 2)
-    setting.add_parameter("exit_window", 5, 40, 2)
-    setting.add_parameter("atr_window", 10, 35, 2)
-    setting.add_parameter("fixed_size", 1, 2, 1)
-    setting.add_parameter("stop_rate", 1, 25, 1.5)
-    setting.add_parameter("add_rate", 1, 25, 1.5)
+    result[k] = r
 
-    result = engine.run_ga_optimization(setting)
-
-    write_list_to_json([k, result], k, 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para')#必须绝对路径应为os.chdir
-    print('优化结束:' + k)
-    sleep(2)
-    
+write_list_to_json(result, "result.json", 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/trade_balance')
 
 # trades = engine.trades
 # for value in trades.values():

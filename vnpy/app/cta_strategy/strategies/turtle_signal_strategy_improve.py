@@ -14,10 +14,10 @@ class TurtleSignalStrategyImprove(CtaTemplate):
     """"""
     author = "wxh"
 
-    entry_window = 21
-    exit_window = 18
-    atr_window = 23
-    fixed_size = 1
+    entry_window = 21.0
+    exit_window = 18.0
+    atr_window = 23.0
+    fixed_size = 1.0
     stop_rate = 1.1
     add_rate = 1.0
 
@@ -135,10 +135,10 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         """
         if trade.direction == Direction.LONG:
             self.long_entry = trade.price
-            self.long_stop = self.long_entry - self.stop_rate * self.atr_value
+            self.long_stop = self.long_entry - self.stop_rate/10 * self.atr_value
         else:
             self.short_entry = trade.price
-            self.short_stop = self.short_entry + self.stop_rate * self.atr_value
+            self.short_stop = self.short_entry + self.stop_rate/10 * self.atr_value
 
     def on_order(self, order: OrderData):
         """
@@ -160,13 +160,13 @@ class TurtleSignalStrategyImprove(CtaTemplate):
             self.buy(price, self.fixed_size, True)
 
         if t < 2:
-            self.buy(price + self.atr_value * 0.5 * self.add_rate, self.fixed_size, True)
+            self.buy(price + self.atr_value * 0.5 * self.add_rate/10, self.fixed_size, True)
 
         if t < 3:
-            self.buy(price + self.atr_value * self.add_rate, self.fixed_size, True)
+            self.buy(price + self.atr_value * self.add_rate/10, self.fixed_size, True)
 
         if t < 4:
-            self.buy(price + self.atr_value * 1.5 * self.add_rate, self.fixed_size, True)
+            self.buy(price + self.atr_value * 1.5 * self.add_rate/10, self.fixed_size, True)
 
     def send_short_orders(self, price):
         """"""
@@ -176,10 +176,10 @@ class TurtleSignalStrategyImprove(CtaTemplate):
             self.short(price, self.fixed_size, True)
 
         if t > -2:
-            self.short(price - self.atr_value * 0.5 * self.add_rate, self.fixed_size, True)
+            self.short(price - self.atr_value * 0.5 * self.add_rate/10, self.fixed_size, True)
 
         if t > -3:
-            self.short(price - self.atr_value * self.add_rate, self.fixed_size, True)
+            self.short(price - self.atr_value * self.add_rate/10, self.fixed_size, True)
 
         if t > -4:
-            self.short(price - self.atr_value * 1.5 * self.add_rate, self.fixed_size, True)
+            self.short(price - self.atr_value * 1.5 * self.add_rate/10, self.fixed_size, True)

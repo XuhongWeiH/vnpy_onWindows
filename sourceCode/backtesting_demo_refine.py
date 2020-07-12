@@ -51,7 +51,10 @@ def write_list_to_json(list_in, json_file_name, json_file_save_path):
 
 
 for k in information_future.keys():
-    print('优化:' + k)     
+    print('优化:' + k)
+    with open("D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para/" + k, encoding='utf-8') as fr:
+        future_para = json.loads(fr.read())
+        
     engine = BacktestingEngine()
     engine.set_parameters(
         vt_symbol=k,
@@ -68,24 +71,24 @@ for k in information_future.keys():
     engine.add_strategy(TurtleSignalStrategyImprove, {})
 
     engine.load_data()
-    engine.run_backtesting()
-    df = engine.calculate_result()
-    engine.calculate_statistics()
+    # engine.run_backtesting()
+    # df = engine.calculate_result()
+    # engine.calculate_statistics()
     # engine.show_chart()
     # show_chart(df)
 
     setting = OptimizationSetting()
     setting.set_target("daily_return")
-    setting.add_parameter("entry_window", 5, 40, 2)
-    setting.add_parameter("exit_window", 5, 40, 2)
-    setting.add_parameter("atr_window", 10, 35, 2)
+    setting.add_parameter("entry_window", future_para[1][0][0]['entry_window']-8, future_para[1][0][0]['entry_window']+8, 1)
+    setting.add_parameter("exit_window", future_para[1][0][0]['exit_window']-8, future_para[1][0][0]['exit_window']+8, 1)
+    setting.add_parameter("atr_window", future_para[1][0][0]['atr_window']-8, future_para[1][0][0]['atr_window']+8, 1)
     setting.add_parameter("fixed_size", 1, 2, 1)
-    setting.add_parameter("stop_rate", 1, 25, 1.5)
-    setting.add_parameter("add_rate", 1, 25, 1.5)
+    setting.add_parameter("stop_rate", future_para[1][0][0]['stop_rate']-8, future_para[1][0][0]['stop_rate']+8, 1)
+    setting.add_parameter("add_rate", future_para[1][0][0]['add_rate']-8, future_para[1][0][0]['add_rate']+8, 1)
 
     result = engine.run_ga_optimization(setting)
 
-    write_list_to_json([k, result], k, 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para')#必须绝对路径应为os.chdir
+    write_list_to_json([k, result], k, 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para_refine')#必须绝对路径应为os.chdir
     print('优化结束:' + k)
     sleep(2)
     

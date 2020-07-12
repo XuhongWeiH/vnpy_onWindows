@@ -262,6 +262,7 @@ class BacktestingEngine:
             end += (progress_delta + interval_delta)
 
         self.output(f"历史数据加载完成，数据量：{len(self.history_data)}")
+        return self.history_data
 
     def run_backtesting(self):
         """"""
@@ -519,7 +520,7 @@ class BacktestingEngine:
         self.output("策略统计指标计算完成")
         return statistics
 
-    def show_chart(self, df: DataFrame = None):
+    def show_chart(self, df: DataFrame = None, k = '', rf = 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/RES/'):
         """"""
         # Check DataFrame input exterior
         if df is None:
@@ -532,7 +533,7 @@ class BacktestingEngine:
         plt.figure(figsize=(10, 16))
 
         balance_plot = plt.subplot(4, 1, 1)
-        balance_plot.set_title("Balance")
+        balance_plot.set_title("Balance" + k)
         df["balance"].plot(legend=True)
 
         drawdown_plot = plt.subplot(4, 1, 2)
@@ -547,7 +548,8 @@ class BacktestingEngine:
         distribution_plot.set_title("Daily Pnl Distribution")
         df["net_pnl"].hist(bins=50)
 
-        plt.show()
+        # plt.show()
+        plt.savefig(rf)
 
     def run_optimization(self, optimization_setting: OptimizationSetting, output=True):
         """"""
