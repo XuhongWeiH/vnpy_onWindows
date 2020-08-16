@@ -209,6 +209,8 @@ class BacktestingEngine:
         self.strategy = strategy_class(
             self, strategy_class.__name__, self.vt_symbol, setting
         )
+        self.strategy.capital_total = self.capital
+        self.strategy.future_size = self.size
 
     def load_data(self):
         """"""
@@ -391,6 +393,7 @@ class BacktestingEngine:
             return_drawdown_ratio = 0
         else:
             # Calculate balance related time series data
+            if self.strategy.hold_record != {}: print("没清理干净")
             df["balance"] = df["net_pnl"].cumsum() + self.capital
             df["return"] = np.log(df["balance"] / df["balance"].shift(1)).fillna(0)
             df["highlevel"] = (
@@ -735,6 +738,7 @@ class BacktestingEngine:
     def update_daily_close(self, price: float):
         """"""
         d = self.datetime.date()
+        self.strategy.newday_price = price
 
         daily_result = self.daily_results.get(d, None)
         if daily_result:
@@ -789,13 +793,11 @@ class BacktestingEngine:
             long_cross = (
                 order.direction == Direction.LONG
                 and order.price >= long_cross_price
-                and long_cross_price > 0
             )
 
             short_cross = (
                 order.direction == Direction.SHORT
                 and order.price <= short_cross_price
-                and short_cross_price > 0
             )
 
             if not long_cross and not short_cross:
@@ -851,7 +853,7 @@ class BacktestingEngine:
             short_cross_price = self.tick.last_price
             long_best_price = long_cross_price
             short_best_price = short_cross_price
-
+            
         for stop_order in list(self.active_stop_orders.values()):
             # Check whether stop order can be triggered.
             long_cross = (
@@ -1184,14 +1186,12 @@ class DailyResult:
             # For normal contract
             if not inverse:
                 turnover = trade.volume * size * trade.price
-                self.trading_pnl += pos_change * \
-                    (self.close_price - trade.price) * size
+                self.trading_pnl += pos_change * (self.close_price - trade.price) * size
                 self.slippage += trade.volume * size * slippage
             # For crypto currency inverse contract
             else:
                 turnover = trade.volume * size / trade.price
-                self.trading_pnl += pos_change * \
-                    (1 / trade.price - 1 / self.close_price) * size
+                self.trading_pnl += pos_change * (1 / trade.price - 1 / self.close_price) * size
                 self.slippage += trade.volume * size * slippage / (trade.price ** 2)
 
             self.turnover += turnover

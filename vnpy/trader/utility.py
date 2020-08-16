@@ -12,6 +12,7 @@ from math import floor, ceil
 
 import numpy as np
 import talib
+import math
 
 from .object import BarData, TickData
 from .constant import Exchange, Interval
@@ -146,7 +147,7 @@ def ceil_to(value: float, target: float) -> float:
     result = float(int(ceil(value / target)) * target)
     return result
 
-
+   
 class BarGenerator:
     """
     For:
@@ -701,6 +702,35 @@ class ArrayManager(object):
         if array:
             return up, down
         return up[-1], down[-1]
+    
+    def donchian_long_term(
+        self, unit: int, window: int, count: int, signal_array: list = [], trade_allow = {'LONG': False, 'SHORT': False}
+    ) -> Union[
+        Tuple[float, float]
+    ]:
+        """
+        Donchian Channel in Long term
+        """
+        if signal_array == []:
+            for i in range(window, 0, -1):
+                signal_array += [(self.open[-i * unit],
+                                  self.close[-(i - 1) * unit - 1])]
+        count += 1
+        if count == unit:
+            count = 0
+            trade_allow = {'LONG': True, 'SHORT': True}
+            signal_array[:-1] = signal_array[1:]
+            signal_array[-1] = (self.open[-unit],
+                                self.close[-1])
+
+        signal_array_flat = []
+        for tmp in signal_array:
+            signal_array_flat += [tmp[0], tmp[1]]
+
+        up = max(signal_array_flat)
+        down = min(signal_array_flat)
+
+        return up, down, count, signal_array, trade_allow
 
     def aroon(
         self,

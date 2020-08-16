@@ -39,14 +39,13 @@ class CapitalManagementModel():
         new_equity = (add_hold_value+ self.cash)*equity
         return new_equity
 
-    def ATR_order_model(self, new_equity, equity_ratio, yi_shou_he_yue_dan_wei, \
-                        daily_ATR, history_min_ATR, now_price, order_ratio = 0.14):
-        equity_ratio = min( equity_ratio, max(0, 0.1 - 0.02*len(self.hold) ) )
-        daily_ATR = max(daily_ATR, 0.01)
-        order_value = math.floor( new_equity * equity_ratio / (yi_shou_he_yue_dan_wei * daily_ATR) )
-        order_value_max1 = math.floor( new_equity  * equity_ratio / (yi_shou_he_yue_dan_wei * history_min_ATR*5) )
-        order_value_max2 = math.floor( new_equity  / (yi_shou_he_yue_dan_wei * now_price * order_ratio) )
-        return min(order_value,order_value_max1,order_value_max2 )
+    def ATR_order_model(self, new_equity,  yi_shou_he_yue_dan_wei, \
+                        safe_daily_ATR, now_price, order_ratio = 0.14):
+        # equity_ratio = min( equity_ratio, max(0, 0.1 - 0.02*len(self.hold) ) )
+        safe_daily_ATR = max(safe_daily_ATR, 0.01)
+        order_value = math.floor( new_equity / (yi_shou_he_yue_dan_wei * safe_daily_ATR) )
+        order_value_max = math.floor( new_equity/2/ (yi_shou_he_yue_dan_wei * now_price * order_ratio) )
+        return min(order_value, order_value_max)
 
     def stop_R_ratio_model(self, new_equity, equity_ratio, yi_shou_he_yue_dan_wei, \
                            build_price, stop_price, min_loss, order_ratio = 0.14):
