@@ -12,7 +12,12 @@ from vnpy.app.cta_strategy import (
     ArrayManager,
 )
 import sys
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import mplfinance as mpf
 sys.path.append('.')
+
 
 
 class TurtleSignalStrategyImprove(CtaTemplate):
@@ -38,6 +43,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
     stop_high_value = 0
     stop_low_value = 0
     stop_high_low_ratio = 0.9
+    stop_highlow_value_byrate = 0
 
     entry_up = 0
     entry_down = 0
@@ -48,9 +54,11 @@ class TurtleSignalStrategyImprove(CtaTemplate):
     price_mean = 0
 
     long_entry = 0
+    long_entry_trade = np.nan
     short_entry = 0
-    long_stop = 0
-    short_stop = 0
+    short_entry_trade = np.nan
+    long_stop = np.nan
+    short_stop = np.nan
 
     parameters = ["entry_unit", "entry_window", "exit_unit", "exit_window", "tupo_insure_ratio",
                   "atr_window_recent", "atr_window_day_avg", "atr_safe_ratio", "stop_atr", "stop_avg_window", 
@@ -58,7 +66,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
 
     variables = ["atr_value_recent", "atr_value_day_avg", "atr_value_safe", "entry_up", "entry_down", "exit_up",
                  "exit_down", "atr_value", "price_mean", "long_entry", "short_entry", "long_stop", "short_stop",
-                 "stop_avg_value", "stop_high_value", "stop_low_value", "fixed_size"]
+                 "stop_avg_value", "stop_high_value", "stop_low_value", 'stop_highlow_value_byrate' "fixed_size"]
 
     def __init__(self, cta_engine, strategy_name, vt_symbol, setting):
         """"""
@@ -78,7 +86,14 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         self.exit_signal_array = []
         self.trade_allow = {'LONG': True, 'SHORT': True}
 
+        self.bar = None
         self.hold_record = {}
+        self.histry_ktmp = {}
+        self.history_Kline = pd.DataFrame(columns=["Date","Open","High","Low","Close","Volume",\
+            'stop_exit_up', 'stop_exit_down', 'long_entry_trade', 'short_entry_trade',
+            'entry_up', 'entry_down', 'stop_highlow_value_byrate', 'stop_long_atr', 'stop_short_atr', 'stop_avg_value'])
+
+
         self.future_size = None
         self.newday_price = None
 
@@ -122,6 +137,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
             '保证金比例': 0.18
         }
         self.cancel_all()
+        self.bar = bar
         self.am.update_bar(bar)
         if not self.am.inited:
             return
@@ -156,18 +172,18 @@ class TurtleSignalStrategyImprove(CtaTemplate):
 
         elif self.pos > 0:
             self.stop_high_value = max(self.am.high[-1], self.stop_high_value)
-            sell_price = max(self.long_stop, self.exit_down, self.stop_high_value *
-                             self.stop_high_low_ratio, self.stop_avg_value)
+            self.stop_highlow_value_byrate = self.stop_high_value * self.stop_high_low_ratio
+            sell_price = max(self.long_stop, self.exit_down, self.stop_highlow_value_byrate, self.stop_avg_value)
             self.sell(sell_price, abs(self.pos), True)
             self.trade2hold(sell_price, direction='多')
 
         elif self.pos < 0:
             self.stop_low_value = min(self.am.low[-1], self.stop_low_value)
-            cover_price = min(self.short_stop, self.exit_up, self.stop_low_value /
-                              self.stop_high_low_ratio, self.stop_avg_value)
+            self.stop_highlow_value_byrate = self.stop_low_value / self.stop_high_low_ratio
+            cover_price = min(self.short_stop, self.exit_up, self.stop_highlow_value_byrate, self.stop_avg_value)
             self.cover(cover_price, abs(self.pos), True)
             self.trade2hold(cover_price, direction='空')
-
+        
         self.put_event()
 
     def trade2hold(self, stop_price, trade=None, direction='没定义'):
@@ -241,17 +257,19 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         """
         if trade.direction == Direction.LONG:
             self.trade_allow['LONG'] = False
-            self.long_entry = trade.price
-            self.long_stop = self.long_entry - self.stop_atr * self.atr_value_recent
-            sell_price = max(self.long_stop, self.exit_down, self.stop_high_value *
-                             self.stop_high_low_ratio, self.stop_avg_value)
+            self.long_entry_trade = trade.price
+            self.short_entry_trade = np.nan
+            self.long_stop = self.long_entry_trade - self.stop_atr * self.atr_value_recent
+            self.short_stop = np.nan
+            sell_price = max(self.long_stop, self.exit_down, self.stop_highlow_value_byrate, self.stop_avg_value)
             self.trade2hold(sell_price, trade=trade)
         else:
             self.trade_allow['SHORT'] = False
-            self.short_entry = trade.price
-            self.short_stop = self.short_entry + self.stop_atr * self.atr_value_recent
-            cover_price = min(self.short_stop, self.exit_up, self.stop_low_value /
-                              self.stop_high_low_ratio, self.stop_avg_value)
+            self.short_entry_trade = trade.price
+            self.long_entry_trade = np.nan
+            self.short_stop = self.short_entry_trade + self.stop_atr * self.atr_value_recent
+            self.long_stop = np.nan
+            cover_price = min(self.short_stop, self.exit_up, self.stop_highlow_value_byrate, self.stop_avg_value)
             self.trade2hold(cover_price, trade=trade)
 
         if self.hold_record != {}:
@@ -270,10 +288,87 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         """
         pass
 
+    def on_chart(self):
+        
+        if self.history_Kline.empty:
+            # for k in self.history_Kline.columns:
+            #     if k != 'Date':
+            #         self.histry_ktmp[k] = 0
+            self.histry_ktmp["Date"] = self.bar.datetime
+            self.histry_ktmp["Open"] = self.bar.open_price
+            self.histry_ktmp["High"] = self.bar.high_price
+            self.histry_ktmp["Low"] = self.bar.low_price
+            self.histry_ktmp["Close"] = self.bar.close_price
+            self.histry_ktmp["Volume"] = self.bar.volume
+        else:
+            self.histry_ktmp = {"Date": self.bar.datetime, "Open": self.bar.open_price,
+                            "High": self.bar.high_price, "Low": self.bar.low_price, "Close": self.bar.close_price, 
+                            "Volume": self.bar.volume}
+
+        if not self.am.inited:
+            self.history_Kline = self.history_Kline.append([self.histry_ktmp], ignore_index=True)
+            return
+        if not self.pos:
+            self.stop_highlow_value_byrate = np.nan
+            self.long_stop = np.nan
+            self.short_stop = np.nan
+
+        self.histry_ktmp['entry_up'] = self.entry_up
+        self.histry_ktmp['entry_down'] = self.entry_down
+        self.histry_ktmp['stop_exit_up'] = self.exit_up
+        self.histry_ktmp['stop_exit_down'] = self.exit_down
+        self.histry_ktmp['stop_highlow_value_byrate'] = self.stop_highlow_value_byrate
+        self.histry_ktmp['stop_long_atr'] = self.long_stop
+        self.histry_ktmp['stop_short_atr'] = self.short_stop
+        self.histry_ktmp['stop_avg_value'] = self.stop_avg_value
+        self.histry_ktmp['long_entry_trade'] = self.long_entry_trade
+        self.histry_ktmp['short_entry_trade'] = self.short_entry_trade
+
+        self.history_Kline = self.history_Kline.append([self.histry_ktmp], ignore_index=True)
+        self.long_entry_trade = np.nan
+        self.short_entry_trade = np.nan
+
+        self.history_Kline_show = self.history_Kline
+        self.history_Kline_show = self.history_Kline_show.set_index(['Date'])
+
+        add_plot = [
+        # mpf.make_addplot(self.history_Kline_show.Volume),
+        # mpf.make_addplot(self.history_Kline_show.stop_exit_up, color='b'),
+        # mpf.make_addplot(self.history_Kline_show.stop_exit_down, color='g'),
+        mpf.make_addplot(self.history_Kline_show.entry_up, color='r'),
+        mpf.make_addplot(self.history_Kline_show.entry_down, color='c'),
+        # mpf.make_addplot(self.history_Kline_show.stop_highlow_value_byrate, color='m'),
+        # mpf.make_addplot(self.history_Kline_show.stop_long_atr, color='y'),
+        # mpf.make_addplot(self.history_Kline_show.stop_short_atr, color='k'),
+        # mpf.make_addplot(self.history_Kline_show.stop_avg_value, color='w'),
+        # mpf.make_addplot(self.history_Kline_show['long_entry_trade'], markersize=50, marker='^', color='y'),
+        mpf.make_addplot(self.history_Kline_show['short_entry_trade'],  markersize=50, marker='v', color='r')]
+        #scatter=True,
+
+        my_color = mpf.make_marketcolors(up='red',#上涨时为红色
+                                 down='green',#下跌时为绿色
+                                 edge='i',#隐藏k线边缘
+                                 volume='in',#成交量用同样的颜色
+                                 inherit=True)
+
+        my_style = mpf.make_mpf_style(gridaxis='both',#设置网格
+                           gridstyle='-.',
+                           y_on_right=False,
+                            marketcolors=my_color)
+        if len(self.history_Kline_show) > 500: 
+            # mpf.plot(self.history_Kline_show, style=my_style, volume=True,addplot=add_plot,#展示成交量副图
+            mpf.plot(self.history_Kline_show, style=my_style, volume=False,addplot=add_plot, #展示成交量副图
+             type='candle',figratio=(2,1),#设置图片大小
+            figscale=1.5)
+
+
+        
+
     def send_buy_orders(self, price):
         """"""
         self.long_entry = price
         self.long_stop = self.long_entry - self.stop_atr * self.atr_value_recent
+        self.short_stop = np.nan
 
         self.cpm.UpdateHold(self.capital_total, self.hold_record)
         equity_c = self.cpm.CoreEquityMethod(0.1)
@@ -284,10 +379,6 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                                                    safe_daily_ATR=self.atr_value_safe, now_price=self.future_info[
                                                        '今收'],
                                                    order_ratio=self.future_info['保证金比例'])
-        # order_value_stopR = self.cpm.stop_R_ratio_model(new_equity=equity_a, equity_ratio=0.025,
-        #                                                 yi_shou_he_yue_dan_wei=self.future_info['持仓单位'],
-        #                                                 build_price=price, stop_price=self.long_stop,
-        #                                                 min_loss=0.1, order_ratio=self.future_info['保证金比例'])
 
         hold_decrease_change = self.cpm.adjust_toucun_ratio(equity_a, 0.03)
         # print(equity_c, equity_t, equity_r, order_value_atr, order_value_stopR)
@@ -316,6 +407,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         """"""
         self.short_entry = price
         self.short_stop = self.short_entry + self.stop_atr * self.atr_value_recent
+        self.long_stop = np.nan
 
         self.cpm.UpdateHold(self.capital_total, self.hold_record)
         equity_c = self.cpm.CoreEquityMethod(0.1)
@@ -326,10 +418,6 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                                                    safe_daily_ATR=self.atr_value_safe, now_price=self.future_info[
                                                        '今收'],
                                                    order_ratio=self.future_info['保证金比例'])
-        # order_value_stopR = self.cpm.stop_R_ratio_model(new_equity=equity_r, equity_ratio=0.025,
-        #                                                 yi_shou_he_yue_dan_wei=self.future_info['持仓单位'],
-        #                                                 build_price=price, stop_price=self.long_stop,
-        #                                                 min_loss=0.1, order_ratio=self.future_info['保证金比例'])
 
         hold_decrease_change = self.cpm.adjust_toucun_ratio(equity_a, 0.03)
         # print(equity_c, equity_t, equity_r, order_value_atr, order_value_stopR)
