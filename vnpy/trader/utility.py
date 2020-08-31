@@ -13,6 +13,7 @@ from math import floor, ceil
 import numpy as np
 import talib
 import math
+import datetime
 
 from .object import BarData, TickData
 from .constant import Exchange, Interval
@@ -313,6 +314,7 @@ class ArrayManager(object):
         self.size: int = size
         self.inited: bool = False
 
+        self.date_array : datetime.datetime =np.empty(shape=size, dtype=datetime.datetime)
         self.open_array: np.ndarray = np.zeros(size)
         self.high_array: np.ndarray = np.zeros(size)
         self.low_array: np.ndarray = np.zeros(size)
@@ -328,6 +330,7 @@ class ArrayManager(object):
         if not self.inited and self.count >= self.size:
             self.inited = True
 
+        self.date_array[:-1] = self.date_array[1:]
         self.open_array[:-1] = self.open_array[1:]
         self.high_array[:-1] = self.high_array[1:]
         self.low_array[:-1] = self.low_array[1:]
@@ -335,6 +338,7 @@ class ArrayManager(object):
         self.volume_array[:-1] = self.volume_array[1:]
         self.open_interest_array[:-1] = self.open_interest_array[1:]
 
+        self.date_array[-1] = bar.datetime
         self.open_array[-1] = bar.open_price
         self.high_array[-1] = bar.high_price
         self.low_array[-1] = bar.low_price
@@ -342,6 +346,13 @@ class ArrayManager(object):
         self.volume_array[-1] = bar.volume
         self.open_interest_array[-1] = bar.open_interest
 
+    @property
+    def date(self) -> np.ndarray:
+        """
+        Get open price time series.
+        """
+        return self.date_array
+    
     @property
     def open(self) -> np.ndarray:
         """
@@ -703,26 +714,43 @@ class ArrayManager(object):
             return up, down
         return up[-1], down[-1]
     
-    def donchian_long_term(
-        self, unit: int, window: int, count: int, signal_array: list = [], trade_allow = {'LONG': False, 'SHORT': False}
+    def wei_donchian(
+        self, n: int, array: bool = False
     ) -> Union[
+        Tuple[np.ndarray, np.ndarray],
         Tuple[float, float]
     ]:
         """
+        Donchian Channel.
+        """
+        up = talib.MAX(np.append(self.open, self.close) , 2*n)
+        down = talib.MIN(np.append(self.open, self.close), 2*n)
+
+        if array:
+            return up, down
+        return up[-1], down[-1]
+
+    def weichian(
+        self, unit: int, window: int
+    ) :
+        """
+        Weichian Channel.
+        """
+        signal_array = []
+        signal_date_array = []
+        for i in range(window, 0, -1):
+            signal_array += [(self.open[-i * unit],
+                self.close[-(i - 1) * unit - 1])]
+            signal_date_array += [self.date[-i * unit]]
+
+        return signal_array, signal_date_array
+    
+    def donchian_long_term(
+        self, signal_array: list = []
+    ) :
+        """
         Donchian Channel in Long term
         """
-        if signal_array == []:
-            for i in range(window, 0, -1):
-                signal_array += [(self.open[-i * unit],
-                                  self.close[-(i - 1) * unit - 1])]
-        count += 1
-        if count == unit:
-            count = 0
-            trade_allow = {'LONG': True, 'SHORT': True}
-            signal_array[:-1] = signal_array[1:]
-            signal_array[-1] = (self.open[-unit],
-                                self.close[-1])
-
         signal_array_flat = []
         for tmp in signal_array:
             signal_array_flat += [tmp[0], tmp[1]]
@@ -730,7 +758,7 @@ class ArrayManager(object):
         up = max(signal_array_flat)
         down = min(signal_array_flat)
 
-        return up, down, count, signal_array, trade_allow
+        return up, down
 
     def aroon(
         self,

@@ -754,7 +754,7 @@ class BacktestingEngine:
         self.cross_limit_order()
         self.cross_stop_order()
         self.strategy.on_bar(bar)
-        self.strategy.on_chart()
+        # self.strategy.on_chart()
 
         self.update_daily_close(bar.close_price)
 

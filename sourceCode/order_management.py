@@ -5,7 +5,7 @@ class CapitalManagementModel():
     def __init__(self):
         self.cash = 0
         self.hold = {}
-        #hold = {'ru2001':{'方向':'多','持仓量':2, '买价':5000,'现价':6213, '止损价':5300}     
+        #hold = {'ru2001':{'方向':'多','持仓量':2, '买价':5000,'今收':6213, '止损价':5300}     
         self.hold_value = 0
         
 
@@ -15,7 +15,7 @@ class CapitalManagementModel():
 
         self.hold_value = 0
         for k in self.hold.keys():
-            self.hold_value += self.hold[k]['持仓量']*self.hold[k]['持仓单位']*self.hold[k]['现价']
+            self.hold_value += self.hold[k]['持仓量']*self.hold[k]['持仓单位']*self.hold[k]['今收']
 
         self.total_cap = self.cash + self.hold_value
 
@@ -28,7 +28,7 @@ class CapitalManagementModel():
         return new_equity
 
     def ReducedTotalEquityMethod(self, equity):
-        #hold = {'ru2001':{'方向':'多','持仓量':2, '买价':5000,'现价':6213, '止损价':5300}  
+        #hold = {'ru2001':{'方向':'多','持仓量':2, '买价':5000,'今收':6213, '止损价':5300}  
         add_hold_value = 0
         for k in self.hold.keys():
             tmp = self.hold[k]
@@ -65,14 +65,14 @@ class CapitalManagementModel():
         for k in self.hold.keys():
             tmp = self.hold[k]
             if tmp['方向'] == "多":
-                risk_value = (tmp['持仓单位']*(tmp['现价']-tmp['止损价']))
+                risk_value = (tmp['持仓单位']*(tmp['今收']-tmp['止损价']))
                 hold_num_max = single_equity // risk_value
                 if tmp['持仓量'] > hold_num_max:
                     hold_decrease_change[k] = tmp['持仓量'] - single_equity // risk_value
                 else:
                     hold_decrease_change[k] = 0
             if tmp['方向'] == "空":
-                risk_value = (tmp['持仓单位']*(tmp['止损价']-tmp['现价']))
+                risk_value = (tmp['持仓单位']*(tmp['止损价']-tmp['今收']))
                 hold_num_max = single_equity // risk_value
                 if tmp['持仓量'] > hold_num_max:
                     hold_decrease_change[k] = tmp['持仓量'] - single_equity // risk_value
@@ -89,9 +89,9 @@ class CapitalManagementModel():
 
 
 if __name__ == '__main__':
-    hold = {'ru2001':{'方向':'多','持仓量':2, '持仓单位':10,'买价':5000,'现价':6213, '止损价':5500, '保证金比例':0.18},\
-    'ru2002':{'方向':'空','持仓量':3, '持仓单位':10, '买价':5000,'现价':5113, '止损价':5200, '保证金比例':0.18},\
-    'ru2003':{'方向':'多','持仓量':1, '持仓单位':10, '买价':5000,'现价':4900, '止损价':4800, '保证金比例':0.18} }
+    hold = {'ru2001':{'方向':'多','持仓量':2, '持仓单位':10,'买价':5000,'今收':6213, '止损价':5500, '保证金比例':0.18},\
+    'ru2002':{'方向':'空','持仓量':3, '持仓单位':10, '买价':5000,'今收':5113, '止损价':5200, '保证金比例':0.18},\
+    'ru2003':{'方向':'多','持仓量':1, '持仓单位':10, '买价':5000,'今收':4900, '止损价':4800, '保证金比例':0.18} }
     cash = 300000
     cpm = CapitalManagementModel()
     cpm.UpdateHold(cash,hold)

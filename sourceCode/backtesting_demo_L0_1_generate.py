@@ -73,7 +73,9 @@ for k in information_future.keys():
     engine.calculate_statistics()
     # engine.show_chart()
     # show_chart(df)
-
+    sys.exit()
+    sleep(2)
+    
     print("开始优化：")
     setting = OptimizationSetting()
     setting.set_target("daily_return")
@@ -95,6 +97,7 @@ for k in information_future.keys():
     write_list_to_json([k, result], k, 'D:/vnpy-2.1.2/vnpy-2.1.2/PARA/future_op_para')#必须绝对路径应为os.chdir
     print('优化结束:' + k)
     break
+    sys.exit()
     sleep(2)
     
 
