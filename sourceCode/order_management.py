@@ -9,15 +9,10 @@ class CapitalManagementModel():
         self.hold_value = 0
         
 
-    def UpdateHold(self, cash, hold):
+    def UpdateHold(self, cash):
         self.cash = cash
-        self.hold = hold
 
-        self.hold_value = 0
-        for k in self.hold.keys():
-            self.hold_value += self.hold[k]['持仓量']*self.hold[k]['持仓单位']*self.hold[k]['今收']
-
-        self.total_cap = self.cash + self.hold_value
+        self.total_cap = self.cash
 
     def CoreEquityMethod(self, equity):
         new_equity = self.cash*equity
@@ -94,7 +89,7 @@ if __name__ == '__main__':
     'ru2003':{'方向':'多','持仓量':1, '持仓单位':10, '买价':5000,'今收':4900, '止损价':4800, '保证金比例':0.18} }
     cash = 300000
     cpm = CapitalManagementModel()
-    cpm.UpdateHold(cash,hold)
+    cpm.UpdateHold(cash)
     equity_c = cpm.CoreEquityMethod(0.1)
     equity_t = cpm.TotalEquityMethod(0.1)
     equity_r = cpm.ReducedTotalEquityMethod(0.1)

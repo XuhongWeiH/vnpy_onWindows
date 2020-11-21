@@ -24,11 +24,11 @@ class TurtleSignalStrategyImprove(CtaTemplate):
     """"""
     author = "wxh"
 
-    entry_window = 17
-    exit_window = 22
+    entry_window = 30
+    exit_window = 100
     tupo_insure_ratio = 0.005
 
-    atr_window_recent = 10
+    atr_window_recent = 12
     atr_window_day_avg = 50
     atr_value_recent = 0
     atr_value_day_avg = 0
@@ -81,7 +81,8 @@ class TurtleSignalStrategyImprove(CtaTemplate):
 
         self.atr_window_day_avg = int(min(self.atr_window_day_avg, max(self.entry_window ,self.exit_window)))
         self.setting = setting
-        self.capital_total = 0
+        self.capital_cash = 0
+        self.capital_dingshi_value = 0
         self.entry_count = 0
         self.exit_count = 0
         self.entry_signal_array = []
@@ -193,7 +194,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                 sell_price = max(self.long_stop_atr, self.exit_down, self.stop_highlow_value_byrate, self.stop_avg_value)
             else:
                 sell_price = max(self.long_stop_atr, self.exit_down, self.stop_highlow_value_byrate)
-
+            sell_price = round(sell_price,2)
             self.sell(sell_price, abs(self.pos), True)
             self.trade2hold(sell_price, direction='多')
 
@@ -208,17 +209,36 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                 cover_price = min(self.short_stop_atr, self.exit_up, self.stop_highlow_value_byrate, self.stop_avg_value)
             else:
                 cover_price = min(self.short_stop_atr, self.exit_up, self.stop_highlow_value_byrate)
-
+            cover_price = round(cover_price,2)
             self.cover(cover_price, abs(self.pos), True)
             self.trade2hold(cover_price, direction='空')
         
+        if self.hold_record != {}:
+            self.capital_dingshi_value = self.capital_cash
+            for symbol in self.hold_record.keys():
+                hold = self.hold_record[symbol]
+                if hold['方向'] == "多":
+                    self.capital_dingshi_value += hold['持仓量'] * \
+                        hold['今收'] * hold['持仓单位'] * hold['保证金比例']
+
+                else:
+                    self.capital_dingshi_value += hold['持仓量'] * \
+                        (2 * hold['买价'] - hold['今收']) * \
+                        hold['持仓单位'] * hold['保证金比例']
+        else:
+            self.capital_dingshi_value = self.capital_cash
+
+        if self.hold_record != {}:
+            # print(self.hold_record, '盯市收益:', int(self.capital_dingshi_value), '现金总量:', int(self.capital_cash))
+            pass
+
         self.put_event()
 
     def trade2hold(self, stop_price, trade=None, direction='没定义'):
-
+        
         if trade is None:
             if self.hold_record != {}:
-                assert(self.hold_record[self.symbol]['方向'] == direction)
+                # assert(self.hold_record[self.symbol]['方向'] == direction)
                 self.hold_record[self.symbol]['止损价'] = stop_price
                 self.hold_record[self.symbol]['今收'] = self.newday_price
                 return
@@ -245,23 +265,21 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                 hold['止损价'] = stop_price
                 hold['保证金比例'] = new_hold['保证金比例']
 
-                self.capital_total -= new_hold['持仓量'] * \
+                self.capital_cash -= new_hold['持仓量'] * \
                     new_hold['买价'] * new_hold['持仓单位'] * new_hold['保证金比例']
             else:
                 old_hold = self.hold_record[trade.symbol]
                 # assert(old_hold['持仓量'] - new_hold['持仓量'] >= 0)
                 if old_hold['方向'] == "多":
-                    if new_hold['方向'] == "多":
-                        print("方向错误,多空双开")
-                    self.capital_total += new_hold['持仓量'] * \
+                    assert(new_hold['方向'] != "多")
+                    self.capital_cash += new_hold['持仓量'] * \
                         new_hold['买价'] * new_hold['持仓单位'] * new_hold['保证金比例']
                     if old_hold['持仓量'] - new_hold['持仓量'] == 0:
                         self.hold_record.pop(trade.symbol)
                         return
                 if old_hold['方向'] == "空":
-                    if new_hold['方向'] == "空":
-                        print("方向错误,多空双开")
-                    self.capital_total += new_hold['持仓量'] * \
+                    assert(new_hold['方向'] != "空")
+                    self.capital_cash += new_hold['持仓量'] * \
                         (2 * old_hold['买价'] - new_hold['买价']) * \
                         new_hold['持仓单位'] * new_hold['保证金比例']
                     if old_hold['持仓量'] - new_hold['持仓量'] == 0:
@@ -276,7 +294,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
                 hold['保证金比例'] = new_hold['保证金比例']
         else:
             hold = new_hold
-            self.capital_total -= new_hold['持仓量'] * \
+            self.capital_cash -= new_hold['持仓量'] * \
                 new_hold['买价'] * new_hold['持仓单位'] * new_hold['保证金比例']
         self.hold_record[trade.symbol] = hold
 
@@ -301,10 +319,6 @@ class TurtleSignalStrategyImprove(CtaTemplate):
             self.long_stop_atr = np.nan
             cover_price = min(self.short_stop_atr, self.exit_up, self.stop_highlow_value_byrate)
             self.trade2hold(cover_price, trade=trade)
-
-        if self.hold_record != {}:
-            print(self.hold_record)
-            pass
 
     def on_order(self, order: OrderData):
         """
@@ -403,7 +417,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         self.long_entry = price
         self.long_stop_atr = self.long_entry - self.stop_atr * self.atr_value_recent
 
-        self.cpm.UpdateHold(self.capital_total, self.hold_record)
+        self.cpm.UpdateHold(self.capital_cash)
         equity_c = self.cpm.CoreEquityMethod(0.1)
         equity_t = self.cpm.TotalEquityMethod(0.1)
         equity_r = self.cpm.ReducedTotalEquityMethod(0.1)
@@ -441,7 +455,7 @@ class TurtleSignalStrategyImprove(CtaTemplate):
         self.short_entry = price
         self.short_stop_atr = self.short_entry + self.stop_atr * self.atr_value_recent
 
-        self.cpm.UpdateHold(self.capital_total, self.hold_record)
+        self.cpm.UpdateHold(self.capital_cash)
         equity_c = self.cpm.CoreEquityMethod(0.1)
         equity_t = self.cpm.TotalEquityMethod(0.1)
         equity_r = self.cpm.ReducedTotalEquityMethod(0.1)

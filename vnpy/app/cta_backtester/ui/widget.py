@@ -88,6 +88,7 @@ class BacktesterManager(QtWidgets.QWidget):
 
         self.rate_line = QtWidgets.QLineEdit("0.000025")
         self.slippage_line = QtWidgets.QLineEdit("0.2")
+        self.deposit_rate_line = QtWidgets.QLineEdit("0.2")
         self.size_line = QtWidgets.QLineEdit("300")
         self.pricetick_line = QtWidgets.QLineEdit("0.2")
         self.capital_line = QtWidgets.QLineEdit("1000000")
@@ -152,6 +153,7 @@ class BacktesterManager(QtWidgets.QWidget):
         form.addRow("结束日期", self.end_date_edit)
         form.addRow("手续费率", self.rate_line)
         form.addRow("交易滑点", self.slippage_line)
+        form.addRow("保证金比率", self.deposit_rate_line)
         form.addRow("合约乘数", self.size_line)
         form.addRow("价格跳动", self.pricetick_line)
         form.addRow("回测资金", self.capital_line)
@@ -238,6 +240,7 @@ class BacktesterManager(QtWidgets.QWidget):
 
         self.rate_line.setText(str(setting["rate"]))
         self.slippage_line.setText(str(setting["slippage"]))
+        self.deposit_rate_line.setText(str(setting["deposit_rate"]))
         self.size_line.setText(str(setting["size"]))
         self.pricetick_line.setText(str(setting["pricetick"]))
         self.capital_line.setText(str(setting["capital"]))
@@ -299,6 +302,7 @@ class BacktesterManager(QtWidgets.QWidget):
         end = self.end_date_edit.date().toPyDate()
         rate = float(self.rate_line.text())
         slippage = float(self.slippage_line.text())
+        deposit_rate = float(self.deposit_rate_line.text())
         size = float(self.size_line.text())
         pricetick = float(self.pricetick_line.text())
         capital = float(self.capital_line.text())
@@ -315,6 +319,7 @@ class BacktesterManager(QtWidgets.QWidget):
             "interval": interval,
             "rate": rate,
             "slippage": slippage,
+            "deposit_rate":deposit_rate ,
             "size": size,
             "pricetick": pricetick,
             "capital": capital,
@@ -340,6 +345,7 @@ class BacktesterManager(QtWidgets.QWidget):
             end,
             rate,
             slippage,
+            deposit_rate,
             size,
             pricetick,
             capital,
@@ -370,6 +376,7 @@ class BacktesterManager(QtWidgets.QWidget):
         end = self.end_date_edit.date().toPyDate()
         rate = float(self.rate_line.text())
         slippage = float(self.slippage_line.text())
+        deposit_rate = float(self.deposit_rate_line.text())
         size = float(self.size_line.text())
         pricetick = float(self.pricetick_line.text())
         capital = float(self.capital_line.text())
@@ -396,6 +403,7 @@ class BacktesterManager(QtWidgets.QWidget):
             end,
             rate,
             slippage,
+            deposit_rate,
             size,
             pricetick,
             capital,
@@ -1034,6 +1042,7 @@ class DailyResultMonitor(BaseMonitor):
         "turnover": {"display": "成交额", "cell": BaseCell, "update": False},
         "commission": {"display": "手续费", "cell": BaseCell, "update": False},
         "slippage": {"display": "滑点", "cell": BaseCell, "update": False},
+        "deposit_rate": {"display": "保证金比率", "cell": BaseCell, "update": False},
         "trading_pnl": {"display": "交易盈亏", "cell": BaseCell, "update": False},
         "holding_pnl": {"display": "持仓盈亏", "cell": BaseCell, "update": False},
         "total_pnl": {"display": "总盈亏", "cell": BaseCell, "update": False},

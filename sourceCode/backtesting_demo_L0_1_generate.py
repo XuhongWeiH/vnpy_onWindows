@@ -45,7 +45,7 @@ def write_list_to_json(list_in, json_file_name, json_file_save_path):
      :param json_file_save_path: json文件存储路径    
      :return:    
      """    
-     os.chdir(son_file_save_path)    
+     os.chdir(json_file_save_path)    
      with open(json_file_name, 'w') as  f:        
          json.dump(list_in, f)
 
@@ -57,13 +57,14 @@ for k in information_future.keys():
         vt_symbol=k,
         interval="1d",
         start=datetime(2000, 1, 4),
-        end=datetime(2020, 6, 8),
+        end=datetime(2020, 2, 8),
         rate=0.5/10000,
-        slippage=5,
+        slippage= 5,
         size=information_future[k]['size_line'],
         pricetick=information_future[k]['pricetick_line'],
         capital=100_000,
-        mode=BacktestingMode.BAR
+        mode=BacktestingMode.BAR, 
+        deposit_rate = 0.18
     )
     engine.add_strategy(TurtleSignalStrategyImprove, {})
 
@@ -73,23 +74,20 @@ for k in information_future.keys():
     engine.calculate_statistics()
     # engine.show_chart()
     # show_chart(df)
-    sys.exit()
-    sleep(2)
     
     print("开始优化：")
     setting = OptimizationSetting()
     setting.set_target("daily_return")
-    setting.add_parameter("entry_unit", 10, 30, 10)
-    setting.add_parameter("entry_window", 3, 6, 1)
-    setting.add_parameter("exit_unit", 10, 40, 10)
-    setting.add_parameter("exit_window", 3, 7, 1)
-    setting.add_parameter("tupo_insure_ratio", 0.01, 0.1, 0.02)
-    setting.add_parameter("atr_window_recent", 5, 30, 7)
-    setting.add_parameter("atr_window_day_avg", 100, 200, 25)
+
+    setting.add_parameter("entry_window", 10, 25, 5)
+    setting.add_parameter("exit_window", 10, 25, 5)
+    setting.add_parameter("tupo_insure_ratio", 0.01, 0.011, 0.01)
+    setting.add_parameter("atr_window_recent", 10, 20, 2)
+    setting.add_parameter("atr_window_day_avg", 100, 180, 25)
     setting.add_parameter("atr_safe_ratio", 30, 50, 5)
-    setting.add_parameter("stop_atr", 0.3, 2, 0.3)
+    setting.add_parameter("stop_atr", 0.5, 2, 0.5)
     setting.add_parameter("stop_avg_window", 40, 180, 20)
-    setting.add_parameter("stop_high_low_ratio", 0.7, 0.9, 0.05)
+    setting.add_parameter("stop_high_low_ratio", 0.94, 0.99, 0.05)
 
 
     result = engine.run_ga_optimization(setting)
@@ -98,7 +96,7 @@ for k in information_future.keys():
     print('优化结束:' + k)
     break
     sys.exit()
-    sleep(2)
+    sleep(200000)
     
 
 # trades = engine.trades

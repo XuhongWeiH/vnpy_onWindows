@@ -120,6 +120,7 @@ class BacktestingEngine:
         self.capital = 1_000_000
         self.mode = BacktestingMode.BAR
         self.inverse = False
+        self.deposit_rate=0.18
 
         self.strategy_class = None
         self.strategy = None
@@ -183,7 +184,8 @@ class BacktestingEngine:
         capital: int = 0,
         end: datetime = None,
         mode: BacktestingMode = BacktestingMode.BAR,
-        inverse: bool = False
+        inverse: bool = False,
+        deposit_rate:float = 0.18
     ):
         """"""
         self.mode = mode
@@ -191,6 +193,7 @@ class BacktestingEngine:
         self.interval = Interval(interval)
         self.rate = rate
         self.slippage = slippage
+        self.deposit_rate = deposit_rate
         self.size = size
         self.pricetick = pricetick
         self.start = start
@@ -202,6 +205,7 @@ class BacktestingEngine:
         self.end = end
         self.mode = mode
         self.inverse = inverse
+        
 
     def add_strategy(self, strategy_class: type, setting: dict):
         """"""
@@ -209,7 +213,8 @@ class BacktestingEngine:
         self.strategy = strategy_class(
             self, strategy_class.__name__, self.vt_symbol, setting
         )
-        self.strategy.capital_total = self.capital
+        self.strategy.capital_cash = self.capital
+        self.capital_dingshi_value = self.capital
         self.strategy.future_size = self.size
 
     def load_data(self):
@@ -337,7 +342,8 @@ class BacktestingEngine:
                 self.size,
                 self.rate,
                 self.slippage,
-                self.inverse
+                self.inverse,
+                self.deposit_rate
             )
 
             pre_close = daily_result.close_price
@@ -589,7 +595,8 @@ class BacktestingEngine:
                 self.capital,
                 self.end,
                 self.mode,
-                self.inverse
+                self.inverse,
+                self.deposit_rate
             )))
             results.append(result)
 
@@ -644,6 +651,7 @@ class BacktestingEngine:
         global ga_start
         global ga_rate
         global ga_slippage
+        global ga_deposit_rate
         global ga_size
         global ga_pricetick
         global ga_capital
@@ -665,6 +673,7 @@ class BacktestingEngine:
         ga_end = self.end
         ga_mode = self.mode
         ga_inverse = self.inverse
+        ga_deposit_rate=self.deposit_rate
 
         # Set up genetic algorithem
         toolbox = base.Toolbox()
@@ -1135,6 +1144,7 @@ class DailyResult:
         self.turnover = 0
         self.commission = 0
         self.slippage = 0
+        self.deposit_rate = 0
 
         self.trading_pnl = 0
         self.holding_pnl = 0
@@ -1152,7 +1162,8 @@ class DailyResult:
         size: int,
         rate: float,
         slippage: float,
-        inverse: bool
+        inverse: bool,
+        deposit_rate: float
     ):
         """"""
         # If no pre_close provided on the first day,
@@ -1168,10 +1179,10 @@ class DailyResult:
 
         if not inverse:     # For normal contract
             self.holding_pnl = self.start_pos * \
-                (self.close_price - self.pre_close) * size
+                (self.close_price - self.pre_close) * size * deposit_rate
         else:               # For crypto currency inverse contract
             self.holding_pnl = self.start_pos * \
-                (1 / self.pre_close - 1 / self.close_price) * size
+                (1 / self.pre_close - 1 / self.close_price) * size * deposit_rate
 
         # Trading pnl is the pnl from new trade during the day
         self.trade_count = len(self.trades)
@@ -1186,14 +1197,14 @@ class DailyResult:
 
             # For normal contract
             if not inverse:
-                turnover = trade.volume * size * trade.price
-                self.trading_pnl += pos_change * (self.close_price - trade.price) * size
-                self.slippage += trade.volume * size * slippage
+                turnover = trade.volume * size * trade.price * deposit_rate
+                self.trading_pnl += pos_change * (self.close_price - trade.price) * size * deposit_rate
+                self.slippage += trade.volume * size * slippage * deposit_rate
             # For crypto currency inverse contract
             else:
-                turnover = trade.volume * size / trade.price
-                self.trading_pnl += pos_change * (1 / trade.price - 1 / self.close_price) * size
-                self.slippage += trade.volume * size * slippage / (trade.price ** 2)
+                turnover = trade.volume * size / trade.price * deposit_rate
+                self.trading_pnl += pos_change * (1 / trade.price - 1 / self.close_price) * size * deposit_rate
+                self.slippage += trade.volume * size * slippage / (trade.price ** 2) * deposit_rate
 
             self.turnover += turnover
             self.commission += turnover * rate
@@ -1212,6 +1223,7 @@ def optimize(
     start: datetime,
     rate: float,
     slippage: float,
+    deposit_rate: float,
     size: float,
     pricetick: float,
     capital: int,
@@ -1235,7 +1247,8 @@ def optimize(
         capital=capital,
         end=end,
         mode=mode,
-        inverse=inverse
+        inverse=inverse,
+        deposit_rate=deposit_rate
     )
 
     engine.add_strategy(strategy_class, setting)
@@ -1262,6 +1275,7 @@ def _ga_optimize(parameter_values: tuple):
         ga_start,
         ga_rate,
         ga_slippage,
+        ga_deposit_rate,
         ga_size,
         ga_pricetick,
         ga_capital,
@@ -1315,6 +1329,7 @@ ga_interval = None
 ga_start = None
 ga_rate = None
 ga_slippage = None
+ga_deposit_rate = None
 ga_size = None
 ga_pricetick = None
 ga_capital = None

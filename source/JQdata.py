@@ -2,7 +2,8 @@ import sys
 sys.path.append('.')
 
 from jqdatasdk import *
-auth('13122192187', 'w19940306')
+# auth('13122192187', 'w19940306')
+auth('13122223613', 'wW19940306')
 # 查询是否连接成功
 is_auth = is_auth()
 print(is_auth)
